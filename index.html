@@ -3,16 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <title>Anime Street – Watch Anime in Hindi Dub</title>
-
-<meta name="description" content="Watch Anime and Cartoons in Hindi Dub and English on Anime Street.">
-<meta name="keywords" content="anime hindi dub, watch anime free, cartoon hindi, anime street">
-<meta name="author" content="Anime Street">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial;}
-body{background:black;color:white}
 
+body{
+  background:#000;
+  color:white;
+  min-height:100vh;
+  position:relative;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0.55)),
+    url("https://i.postimg.cc/DJ4rfCL9/wp5203548-all-the-animes-wallpapers.jpg");
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  z-index:-1;
+}
 /* HEADER */
 header{
   background:linear-gradient(90deg,#ff00cc,#3333ff,#00ffff);
@@ -29,52 +43,46 @@ nav{
   position:fixed;
   top:0;
   right:-100%;
-  width:70%;
+  width:75%;
   height:100%;
-  background:#111;
+  background:rgba(0,0,0,0.85);
+  backdrop-filter:blur(6px);
   padding:20px;
-  transition:0.3s;
+  transition:0.3s ease;
   z-index:99;
+  box-shadow:-5px 0 15px rgba(0,0,0,0.6);
 }
+
+nav h3{
+  color:cyan;
+  margin-bottom:10px;
+  text-align:center;
+}
+
 nav a{
   display:block;
   color:white;
   text-decoration:none;
-  padding:12px;
-  border-bottom:1px solid #333;
+  padding:14px;
+  border-radius:8px;
+  margin:6px 0;
+  background:linear-gradient(90deg,#ff00cc,#3333ff,#00ffff);
+  font-weight:bold;
+  text-align:center;
 }
 
-/* ICONS */
-.icons{
-  display:flex;
-  justify-content:space-around;
-  padding:10px;
-}
-.icons div{
-  width:70px;
-  height:90px;
-  border-radius:15px;
-  box-shadow:0 0 10px cyan;
-  overflow:hidden;
-}
-.icons img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
+nav a:hover{
+  background:linear-gradient(90deg,#00ffff,#ff00cc);
+  color:black;
 }
 
 /* SEARCH */
 .search-box{display:flex;padding:10px;gap:5px}
-.search-box input{
-  flex:1;padding:10px;border-radius:20px;border:none;
-}
-.search-box button{
-  padding:10px 15px;
-  background:red;color:white;border:none;border-radius:20px;
-}
+.search-box input{flex:1;padding:10px;border-radius:20px;border:none}
+.search-box button{padding:10px 15px;background:red;color:white;border:none;border-radius:20px}
 
 /* LIST */
-#animeList .item{
+.item{
   border:2px solid red;
   margin:10px;
   padding:10px;
@@ -83,7 +91,12 @@ nav a{
   gap:10px;
   cursor:pointer;
 }
-#animeList img{width:80px;height:100px;border-radius:8px}
+.item img{
+  width:80px;
+  height:110px;
+  border-radius:6px;
+  object-fit:cover;
+}
 
 /* CONTENT */
 .section{padding:15px}
@@ -100,19 +113,17 @@ nav a{
 </header>
 
 <nav id="menu">
-  <a href="index.html" onclick="toggleMenu()">Home</a>
-  <a href="contact.html" onclick="toggleMenu()">Contact</a>
-  <a href="dmcapage.html" onclick="toggleMenu()">DMCA</a>
-  <a href="disclaimer.html" onclick="toggleMenu()">Disclaimer</a>
-  <a href="privacy.html" onclick="toggleMenu()">Privacy</a>
-  <a href="terms.html" onclick="toggleMenu()">Terms</a>
+  <h3>📂 Menu</h3>
+  <a href="index.html" onclick="toggleMenu()">🏠 Home</a>
+  <a href="contact.html" onclick="toggleMenu()">📞 Contact</a>
+  <a href="dmcapage.html" onclick="toggleMenu()">⚠ DMCA</a>
+  <a href="disclaimer.html" onclick="toggleMenu()">📄 Disclaimer</a>
+  <a href="privacy.html" onclick="toggleMenu()">🔒 Privacy</a>
+  <a href="terms.html" onclick="toggleMenu()">📜 Terms</a>
 </nav>
 
-<!-- 🔴 TOP 3 IMAGES FROM FIREBASE -->
-<div class="icons" id="topIcons"></div>
-
 <div class="search-box">
-  <input id="searchInput" placeholder="Search Anime / Movies / Episodes">
+  <input id="searchInput" placeholder="Search Anime">
   <button onclick="searchAnime()">SEARCH</button>
 </div>
 
@@ -147,7 +158,6 @@ var firebaseConfig = {
   projectId: "animeshreet"
 };
 firebase.initializeApp(firebaseConfig);
-
 var db = firebase.firestore();
 
 let menu = document.getElementById("menu");
@@ -164,47 +174,36 @@ db.collection("anime").onSnapshot(snap=>{
     animeData.push(doc.data());
   });
   showList(animeData);
-  showTopIcons(animeData);
 });
 
-/* SHOW TOP 3 */
-function showTopIcons(list){
-  let box = document.getElementById("topIcons");
-  box.innerHTML="";
-  list.slice(0,3).forEach(a=>{
-    box.innerHTML += `
-      <div>
-        <img src="${a.img}">
- reed </div>
-    `;
-  });
-}
-
+/* SHOW LIST */
 function showList(list){
   let box = document.getElementById("animeList");
   box.innerHTML="";
-
   list.forEach(a=>{
     box.innerHTML += `
-      <div class="item" onclick="openAnime('${a.name}')">
-        <img src="${a.img}">
+      <div class="item" onclick="openAnime('${encodeURIComponent(a.name)}')">
+        <img src="${a.photo || a.poster || ''}">
         <div>
-          <h3 style="color:red">${a.name}</h3>
-          <p>${a.lang}</p>
+          <h3 style="color:red">Name: ${a.name || ''}</h3>
         </div>
       </div>
     `;
   });
-  function searchAnime(){
+}
+
+/* SEARCH */
+function searchAnime(){
   let q = document.getElementById("searchInput").value.toLowerCase();
   let result = animeData.filter(a =>
-    a.name.toLowerCase().includes(q)
+    (a.name || "").toLowerCase().includes(q)
   );
   showList(result);
 }
-}
+
+/* OPEN EPISODE PAGE */
 function openAnime(name){
-  window.location.href = "episode.html?name=" + encodeURIComponent(name);
+  window.location.href = "episode.html?name=" + name;
 }
 </script>
 
