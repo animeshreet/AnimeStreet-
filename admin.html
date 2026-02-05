@@ -7,38 +7,23 @@
 
 <style>
 body{background:#000;color:#fff;font-family:Arial;padding:10px}
-
-/* LOGO */
-.top-logo{
-  text-align:center;
-  margin:10px 0 20px 0;
-}
-.top-logo img{
-  width:150px;
-  height:auto;
-}
-
+.top-logo{text-align:center;margin:10px 0 20px}
+.top-logo img{width:150px}
 .box{max-width:900px;margin:auto;background:#111;padding:15px;border-radius:10px}
-input,textarea,select,button{
- width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none
-}
-textarea{height:70px}
+input,textarea,select,button{width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none}
+textarea{height:80px}
 button{background:red;color:white;font-weight:bold;cursor:pointer}
 .card{border:1px solid red;padding:10px;margin:10px 0;border-radius:8px}
 h2{text-align:center;color:red}
 #panel{display:none}
-hr{border:1px solid #333;margin:15px 0}
 img{border-radius:6px}
 </style>
 </head>
 
 <body>
 
-<!-- LOGO -->
 <div class="top-logo">
-  <a href="index.html">
-    <img src="logo.png">
-  </a>
+  <img src="logo.png">
 </div>
 
 <div id="loginBox" class="box">
@@ -51,17 +36,16 @@ img{border-radius:6px}
 
 <div id="panel" class="box">
 
-<h2>Anime Manager (Only Name + Poster)</h2>
+<h2>Anime Manager (Name + Poster ONLY)</h2>
 <input id="animeName" placeholder="Anime Name">
-<input id="animePoster" placeholder="Anime Poster URL">
+<input id="animePoster" placeholder="Poster URL">
 <button onclick="saveAnime()">Save / Update Anime</button>
 
-<h3>Anime List</h3>
 <div id="animeList"></div>
 
 <hr>
 
-<h2>Episode Manager (1–17 Fields)</h2>
+<h2>Episode Manager</h2>
 
 <select id="animeSelect"></select>
 
@@ -79,6 +63,8 @@ img{border-radius:6px}
 <textarea id="desc" placeholder="Description (optional)"></textarea>
 <input id="photo" placeholder="Photo URL (optional)">
 
+<hr>
+
 <input id="epName" placeholder="Episode Name (REQUIRED)">
 <input id="watch" placeholder="Watch Link (REQUIRED)">
 <input id="download" placeholder="Download Link (REQUIRED)">
@@ -86,7 +72,6 @@ img{border-radius:6px}
 
 <button onclick="saveEpisode()">Save / Update Episode</button>
 
-<h3>Episode List</h3>
 <div id="episodeList"></div>
 
 <button onclick="logout()">Logout</button>
@@ -98,15 +83,14 @@ img{border-radius:6px}
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
 <script>
-var firebaseConfig = {
+firebase.initializeApp({
   apiKey: "AIzaSyDCS8ijIYoQ3Ho4nduNOs9XmYQtjeT9Jc0",
   authDomain: "animeshreet.firebaseapp.com",
   projectId: "animeshreet"
-};
-firebase.initializeApp(firebaseConfig);
+});
 
-var auth = firebase.auth();
-var db = firebase.firestore();
+const auth=firebase.auth();
+const db=firebase.firestore();
 
 let editAnimeId=null;
 let editEpisodeId=null;
@@ -125,27 +109,19 @@ auth.onAuthStateChanged(user=>{
 });
 
 function login(){
- auth.signInWithEmailAndPassword(loginEmail.value, loginPass.value)
+ auth.signInWithEmailAndPassword(loginEmail.value,loginPass.value)
  .catch(e=>msg.innerText=e.message);
 }
-function logout(){ auth.signOut(); }
+function logout(){auth.signOut();}
 
 /* ===== ANIME ===== */
 function saveAnime(){
- let data={
-  name: animeName.value.trim(),
-  poster: animePoster.value
- };
-
- if(editAnimeId){
-  db.collection("anime").doc(editAnimeId).update(data);
-  editAnimeId=null;
- }else{
-  db.collection("anime").add(data);
- }
-
- animeName.value="";
- animePoster.value="";
+ let data={name:animeName.value,poster:animePoster.value};
+ editAnimeId
+ ? db.collection("anime").doc(editAnimeId).update(data)
+ : db.collection("anime").add(data);
+ editAnimeId=null;
+ animeName.value="";animePoster.value="";
 }
 
 function loadAnime(){
@@ -161,47 +137,44 @@ function loadAnime(){
      <button onclick="editAnime('${doc.id}')">Edit</button>
      <button onclick="delAnime('${doc.id}')">Delete</button>
     </div>`;
-   animeSelect.innerHTML+=`<option value="${a.name.toLowerCase()}">${a.name}</option>`;
+   animeSelect.innerHTML+=`<option value="${a.name}">${a.name}</option>`;
   });
  });
 }
 
 function editAnime(id){
- db.collection("anime").doc(id).get().then(doc=>{
-  let a=doc.data();
-  animeName.value=a.name;
-  animePoster.value=a.poster;
+ db.collection("anime").doc(id).get().then(d=>{
+  animeName.value=d.data().name;
+  animePoster.value=d.data().poster;
   editAnimeId=id;
  });
 }
 
 function delAnime(id){
- if(confirm("Delete Anime?")){
-  db.collection("anime").doc(id).delete();
- }
+ if(confirm("Delete Anime?")) db.collection("anime").doc(id).delete();
 }
 
-/* ===== EPISODE ===== */
+/* ===== EPISODES ===== */
 function saveEpisode(){
- if(!animeSelect.value || !epName.value || !watch.value || !download.value || !mega.value){
-  alert("Episode Name, Watch, Download, Mega REQUIRED hai");
+ if(!epName.value||!watch.value||!download.value||!mega.value){
+  alert("Episode Name, Watch, Download, Mega REQUIRED");
   return;
  }
 
  let data={
-  animeName: animeSelect.value.toLowerCase(),
+  animeName:animeSelect.value,
   title:title.value,
   about:about.value,
   fullName:fullName.value,
   season:season.value,
   runtime:runtime.value,
-  totalep:totalep.value,
+  totalEpisodes:totalep.value,
   network:network.value,
   year:year.value,
-  lang:lang.value,
+  language:lang.value,
   genre:genre.value,
   rating:rating.value,
-  desc:desc.value,
+  description:desc.value,
   photo:photo.value,
   epName:epName.value,
   watch:watch.value,
@@ -209,19 +182,12 @@ function saveEpisode(){
   mega:mega.value
  };
 
- if(editEpisodeId){
-  db.collection("episodes").doc(editEpisodeId).update(data);
-  editEpisodeId=null;
- }else{
-  db.collection("episodes").add(data);
- }
+ editEpisodeId
+ ? db.collection("episodes").doc(editEpisodeId).update(data)
+ : db.collection("episodes").add(data);
 
- title.value=""; poster.value=""; about.value=""; fullName.value="";
- season.value=""; runtime.value=""; totalep.value="";
- network.value=""; year.value=""; lang.value="";
- genre.value=""; rating.value=""; desc.value="";
- photo.value="";
- epName.value=""; watch.value=""; download.value=""; mega.value="";
+ editEpisodeId=null;
+ document.querySelectorAll("#panel input, #panel textarea").forEach(i=>i.value="");
 }
 
 function loadEpisodes(){
@@ -240,22 +206,21 @@ function loadEpisodes(){
 }
 
 function editEpisode(id){
- db.collection("episodes").doc(id).get().then(doc=>{
-  let e=doc.data();
+ db.collection("episodes").doc(id).get().then(d=>{
+  let e=d.data();
   animeSelect.value=e.animeName;
   title.value=e.title||"";
-  poster.value=e.poster||"";
   about.value=e.about||"";
   fullName.value=e.fullName||"";
   season.value=e.season||"";
   runtime.value=e.runtime||"";
-  totalep.value=e.totalep||"";
+  totalep.value=e.totalEpisodes||"";
   network.value=e.network||"";
   year.value=e.year||"";
-  lang.value=e.lang||"";
+  lang.value=e.language||"";
   genre.value=e.genre||"";
   rating.value=e.rating||"";
-  desc.value=e.desc||"";
+  desc.value=e.description||"";
   photo.value=e.photo||"";
   epName.value=e.epName;
   watch.value=e.watch;
@@ -266,9 +231,7 @@ function editEpisode(id){
 }
 
 function delEpisode(id){
- if(confirm("Delete Episode?")){
-  db.collection("episodes").doc(id).delete();
- }
+ if(confirm("Delete Episode?")) db.collection("episodes").doc(id).delete();
 }
 </script>
 </body>
