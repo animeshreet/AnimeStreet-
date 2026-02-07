@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://animeshreetindia.github.io/AnimeStreetIndia/sitemap.xml
+Sitemap: https://animestreetindia.github.io/AnimeStreetIndia/sitemap.xml
