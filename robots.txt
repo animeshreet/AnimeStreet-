@@ -1,4 +1,5 @@
 User-agent: *
+Disallow: /AnimeStreetIndia/admin.html
 Allow: /
 
 Sitemap: https://animestreetindia.github.io/AnimeStreetIndia/sitemap.xml
